@@ -23,6 +23,7 @@ model User {
   createdWorkspaces Workspace[] @relation("WorkspaceCreator")
 
   memberships WorkspaceMember[]
+  sessions    Session[]
 }
 
 model Workspace {
@@ -52,4 +53,17 @@ model WorkspaceMember {
   workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([userId, workspaceId])
+}
+
+model Session {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @db.Uuid
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokenHash String    @unique
+  expiresAt        DateTime  @db.Timestamptz(3)
+  createdAt        DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(3)
+  revokedAt        DateTime? @db.Timestamptz(3)
+
+  @@index([userId])
 }
