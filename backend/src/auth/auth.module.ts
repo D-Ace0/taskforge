@@ -12,6 +12,7 @@ import { SessionsService } from './sessions.service';
   imports: [
     UsersModule,
     JwtModule.registerAsync({
+      global: true,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -27,5 +28,6 @@ import { SessionsService } from './sessions.service';
     RefreshTokenService,
     SessionsService,
   ],
+  exports: [AccessTokenGuard],
 })
 export class AuthModule {}
