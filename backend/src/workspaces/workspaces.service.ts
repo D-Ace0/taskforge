@@ -12,6 +12,7 @@ import { AddWorkspaceMemberDto } from './dto/add-workspace-member.dto';
 import { WorkspaceRole } from '../generated/prisma/enums';
 import { UsersService } from '../users/users.service';
 import { Prisma } from '../generated/prisma/client';
+import { UpdateWorkspaceMemberRoleDto } from './dto/update-workspace-member-role.dto';
 
 @Injectable()
 export class WorkspacesService {
@@ -128,21 +129,7 @@ export class WorkspacesService {
     userId: string,
     updateWorkspaceDto: UpdateWorkspaceDto,
   ) {
-    const membership = await this.prismaService.workspaceMember.findUnique({
-      where: {
-        userId_workspaceId: {
-          userId,
-          workspaceId,
-        },
-      },
-      select: {
-        role: true,
-      },
-    });
-
-    if (!membership) {
-      throw new NotFoundException('Workspace not found'); //user is not a memeber of this workspace
-    }
+    const membership = await this.requireMembership(userId, workspaceId);
 
     if (membership.role !== 'OWNER') {
       throw new ForbiddenException('Only the workspace owner can update it'); // non owner update is forbidden
@@ -190,22 +177,10 @@ export class WorkspacesService {
     workspaceId: string,
     addWorkspaceMemberDto: AddWorkspaceMemberDto,
   ) {
-    const requesterMembership =
-      await this.prismaService.workspaceMember.findUnique({
-        where: {
-          userId_workspaceId: {
-            userId: requesterId,
-            workspaceId,
-          },
-        },
-        select: {
-          role: true,
-        },
-      });
-
-    if (!requesterMembership) {
-      throw new NotFoundException('Workspace not found'); //requester is not a memeber of this workspace
-    }
+    const requesterMembership = await this.requireMembership(
+      requesterId,
+      workspaceId,
+    );
 
     if (requesterMembership.role === WorkspaceRole.MEMBER) {
       throw new ForbiddenException('Forbidden action');
@@ -260,5 +235,170 @@ export class WorkspacesService {
       }
       throw error;
     }
+  }
+
+  async getMembers(userId: string, workspaceId: string) {
+    await this.requireMembership(userId, workspaceId);
+
+    return this.prismaService.workspace.findUnique({
+      where: {
+        id: workspaceId,
+      },
+      select: {
+        memberships: {
+          orderBy: {
+            joinedAt: 'asc',
+          },
+          select: {
+            id: true,
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+              },
+            },
+            joinedAt: true,
+            role: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateMemberRole(
+    requesterId: string,
+    workspaceId: string,
+    membershipId: string,
+    dto: UpdateWorkspaceMemberRoleDto,
+  ) {
+    const requresterMembership = await this.requireMembership(
+      requesterId,
+      workspaceId,
+    );
+    if (
+      requresterMembership.role === WorkspaceRole.ADMIN ||
+      requresterMembership.role === WorkspaceRole.MEMBER
+    ) {
+      throw new ForbiddenException('Forbidden action');
+    }
+    const targetMembership = await this.prismaService.workspaceMember.findFirst(
+      {
+        where: {
+          workspaceId,
+          id: membershipId,
+        },
+        select: {
+          role: true,
+        },
+      },
+    );
+    if (!targetMembership) {
+      throw new NotFoundException('membership not found'); // owners can not update roles of cross-tenant users
+    }
+
+    if (targetMembership.role === WorkspaceRole.OWNER) {
+      throw new ForbiddenException(
+        'The workspace owner role cannot be changed', // at least 1 owner should exist in a workspace
+      );
+    }
+
+    return this.prismaService.workspaceMember.update({
+      where: {
+        id: membershipId,
+        workspaceId: workspaceId,
+      },
+      data: {
+        role: dto.role,
+      },
+      select: {
+        id: true,
+        workspaceId: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        joinedAt: true,
+        role: true,
+      },
+    });
+  }
+
+  async deleteMember(requesterId:string, workspaceId:string, membershipId:string): Promise<void>{
+    const requester = await this.requireMembership(requesterId, workspaceId);
+    if(requester.role === WorkspaceRole.MEMBER){
+      throw new ForbiddenException('Forbidden action, contact your administrator if you need to perform this action')
+    }
+    const targetMembership = await this.prismaService.workspaceMember.findFirst(
+      {
+        where: {
+          workspaceId,
+          id: membershipId,
+        },
+        select: {
+          role: true,
+        },
+      },
+    );
+    if (!targetMembership) {
+      throw new NotFoundException('membership not found'); // owners can not update roles of cross-tenant users
+    }
+
+    if (targetMembership.role === WorkspaceRole.OWNER) {
+      throw new ForbiddenException(
+        'The workspace owner role cannot be removed', // at least 1 owner should exist in a workspace
+      );
+    }
+    
+    if(requester.role === WorkspaceRole.ADMIN && targetMembership.role === WorkspaceRole.ADMIN){
+      throw new ForbiddenException('Admins can not modify other Admins');
+    }
+    await this.prismaService.workspaceMember.delete({
+      where: {
+        workspaceId: workspaceId,
+        id: membershipId
+      }
+    })
+
+  }
+
+  async deleteWorkspace(requesterId: string, workspaceId: string): Promise<void>{
+    // +++++++++++++++++ NOTE +++++++++++++++++
+    //  Deleting a workspace deletes the corresponding WorkspaceMember rows, so the memberships will also be deleted.
+    // Look at the schema.prisma to know more
+
+    const membership = await this.requireMembership(requesterId, workspaceId)
+    if(membership.role !== WorkspaceRole.OWNER){
+      throw new ForbiddenException('Forbidden Action') // non owners can not delete workspaces
+    }
+    await this.prismaService.workspace.delete({
+      where: {
+        id: workspaceId
+      }
+    })
+  }
+
+  private async requireMembership(userId: string, workspaceId: string) {
+    const membership = await this.prismaService.workspaceMember.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId,
+          workspaceId,
+        },
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+
+    if (!membership) {
+      throw new NotFoundException('Workspace not found');
+    }
+
+    return membership;
   }
 }

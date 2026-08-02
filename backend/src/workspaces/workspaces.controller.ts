@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -17,6 +18,7 @@ import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import type { AuthenticatedRequest } from '../auth/types/authenticated-request';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { AddWorkspaceMemberDto } from './dto/add-workspace-member.dto';
+import { UpdateWorkspaceMemberRoleDto } from './dto/update-workspace-member-role.dto';
 
 @Controller('workspaces')
 export class WorkspacesController {
@@ -68,7 +70,7 @@ export class WorkspacesController {
 
   @Post(':workspaceId/members')
   @UseGuards(AccessTokenGuard)
-  async addMember(
+  addMember(
     @Req() req: AuthenticatedRequest,
     @Param('workspaceId', new ParseUUIDPipe({ version: '4' }))
     workspaceId: string,
@@ -80,5 +82,60 @@ export class WorkspacesController {
       workspaceId,
       addWorkspaceMemberDto,
     );
+  }
+
+  @Get(':workspaceId/members')
+  @UseGuards(AccessTokenGuard)
+  getMembers(
+    @Req() req: AuthenticatedRequest,
+    @Param('workspaceId', new ParseUUIDPipe({ version: '4' }))
+    workspaceId: string,
+  ) {
+    const userId = req.user.sub;
+    return this.workspacesService.getMembers(userId, workspaceId);
+  }
+
+  @Patch(':workspaceId/members/:membershipId/role')
+  @UseGuards(AccessTokenGuard)
+  updateMemberRole(
+    @Req() req: AuthenticatedRequest,
+    @Param('workspaceId', new ParseUUIDPipe({ version: '4' }))
+    workspaceId: string,
+    @Param('membershipId', new ParseUUIDPipe({ version: '4' }))
+    membershipId: string,
+    @Body() updateWorkspaceMemberRoleDto: UpdateWorkspaceMemberRoleDto,
+  ) {
+    const requesterId = req.user.sub;
+    return this.workspacesService.updateMemberRole(
+      requesterId,
+      workspaceId,
+      membershipId,
+      updateWorkspaceMemberRoleDto,
+    );
+  }
+
+  @Delete(':workspaceId/members/:membershipId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(AccessTokenGuard)
+  deleteMember(
+    @Req() req: AuthenticatedRequest,
+    @Param('workspaceId', new ParseUUIDPipe({ version: '4' }))
+    workspaceId: string,
+    @Param('membershipId', new ParseUUIDPipe({ version: '4' }))
+    membershipId: string,
+  ) {
+    const requesterId = req.user.sub;
+    return this.workspacesService.deleteMember(requesterId, workspaceId, membershipId)
+  }
+
+  @Delete(':workspaceId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(AccessTokenGuard)
+  deleteWorkspace(
+    @Req() req: AuthenticatedRequest,
+    @Param('workspaceId', new ParseUUIDPipe({version: '4'})) workspaceId: string
+  ){
+    const requesterId = req.user.sub
+    return this.workspacesService.deleteWorkspace(requesterId, workspaceId)
   }
 }
