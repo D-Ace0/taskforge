@@ -125,7 +125,11 @@ export class WorkspacesController {
     membershipId: string,
   ) {
     const requesterId = req.user.sub;
-    return this.workspacesService.deleteMember(requesterId, workspaceId, membershipId)
+    return this.workspacesService.deleteMember(
+      requesterId,
+      workspaceId,
+      membershipId,
+    );
   }
 
   @Delete(':workspaceId')
@@ -133,9 +137,10 @@ export class WorkspacesController {
   @UseGuards(AccessTokenGuard)
   deleteWorkspace(
     @Req() req: AuthenticatedRequest,
-    @Param('workspaceId', new ParseUUIDPipe({version: '4'})) workspaceId: string
-  ){
-    const requesterId = req.user.sub
-    return this.workspacesService.deleteWorkspace(requesterId, workspaceId)
+    @Param('workspaceId', new ParseUUIDPipe({ version: '4' }))
+    workspaceId: string,
+  ) {
+    const requesterId = req.user.sub;
+    return this.workspacesService.deleteWorkspace(requesterId, workspaceId);
   }
 }

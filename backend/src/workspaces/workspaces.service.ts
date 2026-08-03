@@ -327,10 +327,16 @@ export class WorkspacesService {
     });
   }
 
-  async deleteMember(requesterId:string, workspaceId:string, membershipId:string): Promise<void>{
+  async deleteMember(
+    requesterId: string,
+    workspaceId: string,
+    membershipId: string,
+  ): Promise<void> {
     const requester = await this.requireMembership(requesterId, workspaceId);
-    if(requester.role === WorkspaceRole.MEMBER){
-      throw new ForbiddenException('Forbidden action, contact your administrator if you need to perform this action')
+    if (requester.role === WorkspaceRole.MEMBER) {
+      throw new ForbiddenException(
+        'Forbidden action, contact your administrator if you need to perform this action',
+      );
     }
     const targetMembership = await this.prismaService.workspaceMember.findFirst(
       {
@@ -352,36 +358,41 @@ export class WorkspacesService {
         'The workspace owner role cannot be removed', // at least 1 owner should exist in a workspace
       );
     }
-    
-    if(requester.role === WorkspaceRole.ADMIN && targetMembership.role === WorkspaceRole.ADMIN){
+
+    if (
+      requester.role === WorkspaceRole.ADMIN &&
+      targetMembership.role === WorkspaceRole.ADMIN
+    ) {
       throw new ForbiddenException('Admins can not modify other Admins');
     }
     await this.prismaService.workspaceMember.delete({
       where: {
         workspaceId: workspaceId,
-        id: membershipId
-      }
-    })
-
+        id: membershipId,
+      },
+    });
   }
 
-  async deleteWorkspace(requesterId: string, workspaceId: string): Promise<void>{
+  async deleteWorkspace(
+    requesterId: string,
+    workspaceId: string,
+  ): Promise<void> {
     // +++++++++++++++++ NOTE +++++++++++++++++
     //  Deleting a workspace deletes the corresponding WorkspaceMember rows, so the memberships will also be deleted.
     // Look at the schema.prisma to know more
 
-    const membership = await this.requireMembership(requesterId, workspaceId)
-    if(membership.role !== WorkspaceRole.OWNER){
-      throw new ForbiddenException('Forbidden Action') // non owners can not delete workspaces
+    const membership = await this.requireMembership(requesterId, workspaceId);
+    if (membership.role !== WorkspaceRole.OWNER) {
+      throw new ForbiddenException('Forbidden Action'); // non owners can not delete workspaces
     }
     await this.prismaService.workspace.delete({
       where: {
-        id: workspaceId
-      }
-    })
+        id: workspaceId,
+      },
+    });
   }
 
-  private async requireMembership(userId: string, workspaceId: string) {
+  async requireMembership(userId: string, workspaceId: string) {
     const membership = await this.prismaService.workspaceMember.findUnique({
       where: {
         userId_workspaceId: {

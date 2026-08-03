@@ -8,5 +8,6 @@ import { UsersModule } from '../users/users.module';
   controllers: [WorkspacesController],
   providers: [WorkspacesService],
   imports: [AuthModule, UsersModule],
+  exports: [WorkspacesService],
 })
 export class WorkspacesModule {}
