@@ -13,12 +13,14 @@ import { WorkspaceRole } from '../generated/prisma/enums';
 import { UsersService } from '../users/users.service';
 import { Prisma } from '../generated/prisma/client';
 import { UpdateWorkspaceMemberRoleDto } from './dto/update-workspace-member-role.dto';
+import { WorkspaceAccessService } from './workspace-access.service';
 
 @Injectable()
 export class WorkspacesService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly usersService: UsersService,
+    private readonly workspaceAccessService: WorkspaceAccessService,
   ) {}
 
   async create(createWorkspaceDto: CreateWorkspaceDto, userId: string) {
@@ -129,7 +131,10 @@ export class WorkspacesService {
     userId: string,
     updateWorkspaceDto: UpdateWorkspaceDto,
   ) {
-    const membership = await this.requireMembership(userId, workspaceId);
+    const membership = await this.workspaceAccessService.requireMembership(
+      userId,
+      workspaceId,
+    );
 
     if (membership.role !== 'OWNER') {
       throw new ForbiddenException('Only the workspace owner can update it'); // non owner update is forbidden
@@ -177,10 +182,11 @@ export class WorkspacesService {
     workspaceId: string,
     addWorkspaceMemberDto: AddWorkspaceMemberDto,
   ) {
-    const requesterMembership = await this.requireMembership(
-      requesterId,
-      workspaceId,
-    );
+    const requesterMembership =
+      await this.workspaceAccessService.requireMembership(
+        requesterId,
+        workspaceId,
+      );
 
     if (requesterMembership.role === WorkspaceRole.MEMBER) {
       throw new ForbiddenException('Forbidden action');
@@ -238,7 +244,7 @@ export class WorkspacesService {
   }
 
   async getMembers(userId: string, workspaceId: string) {
-    await this.requireMembership(userId, workspaceId);
+    await this.workspaceAccessService.requireMembership(userId, workspaceId);
 
     return this.prismaService.workspace.findUnique({
       where: {
@@ -272,10 +278,11 @@ export class WorkspacesService {
     membershipId: string,
     dto: UpdateWorkspaceMemberRoleDto,
   ) {
-    const requresterMembership = await this.requireMembership(
-      requesterId,
-      workspaceId,
-    );
+    const requresterMembership =
+      await this.workspaceAccessService.requireMembership(
+        requesterId,
+        workspaceId,
+      );
     if (
       requresterMembership.role === WorkspaceRole.ADMIN ||
       requresterMembership.role === WorkspaceRole.MEMBER
@@ -332,7 +339,10 @@ export class WorkspacesService {
     workspaceId: string,
     membershipId: string,
   ): Promise<void> {
-    const requester = await this.requireMembership(requesterId, workspaceId);
+    const requester = await this.workspaceAccessService.requireMembership(
+      requesterId,
+      workspaceId,
+    );
     if (requester.role === WorkspaceRole.MEMBER) {
       throw new ForbiddenException(
         'Forbidden action, contact your administrator if you need to perform this action',
@@ -381,7 +391,10 @@ export class WorkspacesService {
     //  Deleting a workspace deletes the corresponding WorkspaceMember rows, so the memberships will also be deleted.
     // Look at the schema.prisma to know more
 
-    const membership = await this.requireMembership(requesterId, workspaceId);
+    const membership = await this.workspaceAccessService.requireMembership(
+      requesterId,
+      workspaceId,
+    );
     if (membership.role !== WorkspaceRole.OWNER) {
       throw new ForbiddenException('Forbidden Action'); // non owners can not delete workspaces
     }
@@ -390,26 +403,5 @@ export class WorkspacesService {
         id: workspaceId,
       },
     });
-  }
-
-  async requireMembership(userId: string, workspaceId: string) {
-    const membership = await this.prismaService.workspaceMember.findUnique({
-      where: {
-        userId_workspaceId: {
-          userId,
-          workspaceId,
-        },
-      },
-      select: {
-        id: true,
-        role: true,
-      },
-    });
-
-    if (!membership) {
-      throw new NotFoundException('Workspace not found');
-    }
-
-    return membership;
   }
 }

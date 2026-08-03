@@ -6,7 +6,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { WorkspacesService } from '../workspaces/workspaces.service';
 import { WorkspaceRole } from '../generated/prisma/enums';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -14,16 +13,17 @@ import {
   ListProjectQueryDto,
   ProjectStatusFilter,
 } from './dto/list-projects-query.dto';
+import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly workspaceService: WorkspacesService,
+    private readonly workspaceAccessService: WorkspaceAccessService,
   ) {}
 
   async create(creatorId: string, workspaceId: string, dto: CreateProjectDto) {
-    const membership = await this.workspaceService.requireMembership(
+    const membership = await this.workspaceAccessService.requireMembership(
       creatorId,
       workspaceId,
     );
@@ -45,7 +45,10 @@ export class ProjectsService {
     workspaceId: string,
     query: ListProjectQueryDto,
   ) {
-    await this.workspaceService.requireMembership(requesterId, workspaceId);
+    await this.workspaceAccessService.requireMembership(
+      requesterId,
+      workspaceId,
+    );
     const archivedAt =
       query.status === ProjectStatusFilter.ACTIVE
         ? null
@@ -85,7 +88,10 @@ export class ProjectsService {
     workspaceId: string,
     projectId: string,
   ) {
-    await this.workspaceService.requireMembership(requesterId, workspaceId);
+    await this.workspaceAccessService.requireMembership(
+      requesterId,
+      workspaceId,
+    );
     const project = await this.prismaService.project.findFirst({
       where: {
         id: projectId,
@@ -126,7 +132,7 @@ export class ProjectsService {
     projectId: string,
     dto: UpdateProjectDto,
   ) {
-    const membership = await this.workspaceService.requireMembership(
+    const membership = await this.workspaceAccessService.requireMembership(
       requesterId,
       workspaceId,
     );
@@ -179,7 +185,7 @@ export class ProjectsService {
     workspaceId: string,
     projectId: string,
   ) {
-    const membership = await this.workspaceService.requireMembership(
+    const membership = await this.workspaceAccessService.requireMembership(
       requesterId,
       workspaceId,
     );
@@ -224,7 +230,7 @@ export class ProjectsService {
     workspaceId: string,
     projectId: string,
   ) {
-    const membership = await this.workspaceService.requireMembership(
+    const membership = await this.workspaceAccessService.requireMembership(
       requesterId,
       workspaceId,
     );
@@ -268,7 +274,7 @@ export class ProjectsService {
     workspaceId: string,
     projectId: string,
   ): Promise<void> {
-    const membership = await this.workspaceService.requireMembership(
+    const membership = await this.workspaceAccessService.requireMembership(
       requesterId,
       workspaceId,
     );

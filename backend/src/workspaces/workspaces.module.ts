@@ -3,11 +3,12 @@ import { WorkspacesService } from './workspaces.service';
 import { WorkspacesController } from './workspaces.controller';
 import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
+import { WorkspaceAccessService } from './workspace-access.service';
 
 @Module({
   controllers: [WorkspacesController],
-  providers: [WorkspacesService],
+  providers: [WorkspacesService, WorkspaceAccessService],
   imports: [AuthModule, UsersModule],
-  exports: [WorkspacesService],
+  exports: [WorkspaceAccessService],
 })
 export class WorkspacesModule {}
