@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { ProjectsModule } from './projects/projects.module';
+import { IssuesModule } from './issues/issues.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ProjectsModule } from './projects/projects.module';
     DatabaseModule,
     WorkspacesModule,
     ProjectsModule,
+    IssuesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

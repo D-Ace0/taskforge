@@ -22,9 +22,11 @@ model User {
   updatedAt         DateTime    @updatedAt @db.Timestamptz(3)
   createdWorkspaces Workspace[] @relation("WorkspaceCreator")
 
-  memberships WorkspaceMember[]
-  sessions    Session[]
-  projects    Project[]         @relation("ProjectCreator")
+  memberships    WorkspaceMember[]
+  sessions       Session[]
+  projects       Project[]         @relation("ProjectCreator")
+  createdIssues  Issue[]           @relation("IssueCreator")
+  assignedIssues Issue[]           @relation("IssueAssignee")
 }
 
 model Workspace {
@@ -81,6 +83,41 @@ model Project {
   updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdBy   User      @relation(name: "ProjectCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  issues      Issue[]
 
   @@index([workspaceId, archivedAt])
+}
+
+enum IssueStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum IssuePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Issue {
+  id          String        @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  status      IssueStatus   @default(TODO)
+  priority    IssuePriority @default(MEDIUM)
+  projectId   String        @db.Uuid
+  createdById String        @db.Uuid
+  assigneeId  String?       @db.Uuid
+  createdAt   DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(3)
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy   User          @relation("IssueCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  assignee    User?         @relation("IssueAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)   
+
+  @@index([projectId, status])
+  @@index([projectId, priority])
+  @@index([assigneeId])
+  @@index([createdById])
 }
