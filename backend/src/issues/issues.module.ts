@@ -9,6 +9,6 @@ import { IssueAccessService } from './issue-access.service';
   controllers: [IssuesController],
   providers: [IssuesService, IssueAccessService],
   imports: [WorkspacesModule, ProjectsModule],
-  exports: [IssueAccessService]
+  exports: [IssueAccessService],
 })
 export class IssuesModule {}

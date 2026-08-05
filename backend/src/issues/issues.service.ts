@@ -323,9 +323,7 @@ export class IssuesService {
       workspaceId,
     );
     if (project.archivedAt !== null) {
-      throw new ConflictException(
-        'Cannot modify archived projects',
-      );
+      throw new ConflictException('Cannot modify archived projects');
     }
     const issue = await this.prismaService.issue.findFirst({
       where: {
@@ -339,8 +337,8 @@ export class IssuesService {
     await this.prismaService.issue.delete({
       where: {
         id: issueId,
-        projectId: projectId
-      }
-    })
+        projectId: projectId,
+      },
+    });
   }
 }

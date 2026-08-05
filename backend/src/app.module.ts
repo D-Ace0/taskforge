@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { ProjectsModule } from './projects/projects.module';
 import { IssuesModule } from './issues/issues.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { IssuesModule } from './issues/issues.module';
     WorkspacesModule,
     ProjectsModule,
     IssuesModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
