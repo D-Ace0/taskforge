@@ -12,6 +12,8 @@ import { IssueAccessService } from '../issues/issue-access.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { WorkspaceRole } from '../generated/prisma/enums';
+import { ListCommentQueryDto } from './dto/list-comment-query.dto';
+import { Prisma } from '../generated/prisma/client';
 
 @Injectable()
 export class CommentsService {
@@ -71,6 +73,7 @@ export class CommentsService {
     workspaceId: string,
     projectId: string,
     issueId: string,
+    query: ListCommentQueryDto,
   ) {
     await this.workspaceAccessService.requireMembership(userId, workspaceId);
     await this.projectAccessService.requireProjectInWorkspace(
@@ -78,28 +81,47 @@ export class CommentsService {
       workspaceId,
     );
     await this.issueAccessService.requireIssueInProject(issueId, projectId);
-    const comments = await this.prismaService.comment.findMany({
-      where: {
-        issueId: issueId,
-      },
-      select: {
-        id: true,
-        content: true,
-        createdAt: true,
-        updatedAt: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+    const page = query.page;
+    const limit = query.limit;
+    const skip = (page - 1) * limit;
+    const where: Prisma.CommentWhereInput = {
+      issueId: issueId,
+    };
+    const [comments, totalComments] = await Promise.all([
+      this.prismaService.comment.findMany({
+        where: where,
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          author: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
-    return { comments };
+        orderBy: {
+          createdAt: 'asc',
+          id: 'asc'
+        },
+        skip: skip,
+        take: limit
+      }),
+      this.prismaService.comment.count({ where }),
+    ]);
+
+    return { 
+      comments,
+      pagination: {
+        page,
+        limit,
+        totalComments,
+        totalPages: Math.ceil(totalComments / limit)
+      }
+     };
   }
 
   async updateComment(

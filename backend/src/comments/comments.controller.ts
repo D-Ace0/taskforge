@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import type { AuthenticatedRequest } from '../auth/types/authenticated-request';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { ListCommentQueryDto } from './dto/list-comment-query.dto';
 
 @Controller(
   'workspaces/:workspaceId/projects/:projectId/issues/:issueId/comments',
@@ -50,12 +52,14 @@ export class CommentsController {
     workspaceId: string,
     @Param('projectId', new ParseUUIDPipe({ version: '4' })) projectId: string,
     @Param('issueId', new ParseUUIDPipe({ version: '4' })) issueId: string,
+    @Query() query: ListCommentQueryDto,
   ) {
     return this.commentsService.listComments(
       req.user.sub,
       workspaceId,
       projectId,
       issueId,
+      query,
     );
   }
 

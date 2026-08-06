@@ -13,6 +13,7 @@ import { ListIssueQueryDto } from './dto/list-issues-query.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { WorkspaceRole } from '../generated/prisma/enums';
 import { UpdateIssueAssigneeDto } from './dto/update-issue-assignee.dto';
+import { Prisma } from '../generated/prisma/client';
 
 @Injectable()
 export class IssuesService {
@@ -77,42 +78,61 @@ export class IssuesService {
       projectId,
       workspaceId,
     );
-    const issues = await this.prismaService.issue.findMany({
-      where: {
-        projectId: projectId,
-        status: dto.status,
-        priority: dto.priority,
-        assigneeId: dto.assigneeId,
-        createdById: dto.createdById,
-      },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        status: true,
-        priority: true,
-        createdAt: true,
-        updatedAt: true,
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+
+    const where: Prisma.IssueWhereInput = {
+      projectId: projectId,
+      status: dto.status,
+      priority: dto.priority,
+      assigneeId: dto.assigneeId,
+      createdById: dto.createdById,
+    };
+    const page = dto.page;
+    const limit = dto.limit;
+    const skip = (page - 1) * limit;
+    const [issues, totalIssues] = await Promise.all([
+      this.prismaService.issue.findMany({
+        where: where,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          status: true,
+          priority: true,
+          createdAt: true,
+          updatedAt: true,
+          createdBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          assignee: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
         },
-        assignee: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+        orderBy: {
+          createdAt: 'desc',
+          id: 'desc',
         },
+        skip: skip,
+        take: limit,
+      }),
+      this.prismaService.issue.count({ where }),
+    ]);
+    return {
+      issues,
+      pagination: {
+        page,
+        limit,
+        totalIssues,
+        totalPages: Math.ceil(totalIssues / limit),
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return { issues };
+    };
   }
 
   async getIssue(

@@ -14,6 +14,7 @@ import {
   ProjectStatusFilter,
 } from './dto/list-projects-query.dto';
 import { WorkspaceAccessService } from '../workspaces/workspace-access.service';
+import { Prisma } from '../generated/prisma/client';
 
 @Injectable()
 export class ProjectsService {
@@ -56,31 +57,50 @@ export class ProjectsService {
           ? { not: null }
           : undefined;
 
-    const projects = await this.prismaService.project.findMany({
-      where: {
-        workspaceId: workspaceId,
-        archivedAt: archivedAt,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        archivedAt: true,
-        createdAt: true,
-        updatedAt: true,
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+    const where: Prisma.ProjectWhereInput = {
+      workspaceId: workspaceId,
+      archivedAt: archivedAt,
+    };
+    const page = query.page;
+    const limit = query.limit;
+    const skip = (page - 1) * limit;
+    const [projects, totalProjects] = await Promise.all([
+      this.prismaService.project.findMany({
+        where: where,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          archivedAt: true,
+          createdAt: true,
+          updatedAt: true,
+          createdBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
         },
+        orderBy: {
+          createdAt: 'desc',
+          id: 'desc',
+        },
+        skip: skip,
+        take: limit,
+      }),
+      this.prismaService.project.count({ where }),
+    ]);
+
+    return {
+      projects,
+      pagination: {
+        page,
+        limit,
+        totalProjects,
+        totalPages: Math.ceil(totalProjects / limit),
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return { projects };
+    };
   }
 
   async getOneProject(
