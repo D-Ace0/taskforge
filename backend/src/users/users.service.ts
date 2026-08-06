@@ -93,12 +93,14 @@ export class UsersService {
           updatedAt: true,
         },
       });
-      
     } catch (error: unknown) {
-      if(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException('Email already registered');
       }
-      throw error
+      throw error;
     }
   }
 }

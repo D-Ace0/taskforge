@@ -17,16 +17,29 @@ import { AccessTokenGuard } from './guards/access-token.guard';
 import type { AuthenticatedRequest } from './types/authenticated-request';
 import type { Response } from 'express';
 import type { RefreshRequest } from './types/refresh-request';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Throttle({
+    default: {
+      limit: 5, // rate limiting: 5 requests per minute
+      ttl: 60_000,
+    },
+  })
   @Post('register')
   register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
+  @Throttle({
+    default: {
+      limit: 5, // rate limiting: 5 requests per minute
+      ttl: 60_000,
+    },
+  })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -51,6 +64,12 @@ export class AuthController {
     return this.authService.getCurrentUser(req.user.sub);
   }
 
+  @Throttle({
+    default: {
+      limit: 30, // rate limiting: 30 requests per minute
+      ttl: 60_000,
+    },
+  })
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refreshToken(
