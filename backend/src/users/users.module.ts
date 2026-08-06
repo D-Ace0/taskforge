@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { UsersController } from './users.controller';
+import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 
 @Module({
-  providers: [UsersService],
+  controllers: [UsersController],
+  providers: [UsersService, AccessTokenGuard],
   exports: [UsersService],
 })
 export class UsersModule {}

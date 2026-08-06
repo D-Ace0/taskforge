@@ -105,23 +105,23 @@ export class CommentsService {
         },
         orderBy: {
           createdAt: 'asc',
-          id: 'asc'
+          id: 'asc',
         },
         skip: skip,
-        take: limit
+        take: limit,
       }),
       this.prismaService.comment.count({ where }),
     ]);
 
-    return { 
+    return {
       comments,
       pagination: {
         page,
         limit,
         totalComments,
-        totalPages: Math.ceil(totalComments / limit)
-      }
-     };
+        totalPages: Math.ceil(totalComments / limit),
+      },
+    };
   }
 
   async updateComment(
