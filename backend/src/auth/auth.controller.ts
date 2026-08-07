@@ -18,7 +18,9 @@ import type { AuthenticatedRequest } from './types/authenticated-request';
 import type { Response } from 'express';
 import type { RefreshRequest } from './types/refresh-request';
 import { Throttle } from '@nestjs/throttler';
+import { ApiBearerAuth, ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -59,6 +61,7 @@ export class AuthController {
   }
 
   @Get('me')
+  @ApiBearerAuth('access-token')
   @UseGuards(AccessTokenGuard)
   getCurrentUser(@Req() req: AuthenticatedRequest) {
     return this.authService.getCurrentUser(req.user.sub);
@@ -71,6 +74,7 @@ export class AuthController {
     },
   })
   @Post('refresh')
+  @ApiCookieAuth('refresh-token')
   @HttpCode(HttpStatus.OK)
   async refreshToken(
     @Req() req: RefreshRequest,
@@ -93,6 +97,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiCookieAuth('refresh-token')
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(
     @Req() req: RefreshRequest,

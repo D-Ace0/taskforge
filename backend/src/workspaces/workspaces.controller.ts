@@ -19,7 +19,10 @@ import type { AuthenticatedRequest } from '../auth/types/authenticated-request';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { AddWorkspaceMemberDto } from './dto/add-workspace-member.dto';
 import { UpdateWorkspaceMemberRoleDto } from './dto/update-workspace-member-role.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Workspaces')
+@ApiBearerAuth('access-token')
 @Controller('workspaces')
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}

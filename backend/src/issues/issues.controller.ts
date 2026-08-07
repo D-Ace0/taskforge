@@ -20,7 +20,10 @@ import { CreateIssueDto } from './dto/create-issue.dto';
 import { ListIssueQueryDto } from './dto/list-issues-query.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { UpdateIssueAssigneeDto } from './dto/update-issue-assignee.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Issues')
+@ApiBearerAuth('access-token')
 @Controller('workspaces/:workspaceId/projects/:projectId/issues')
 @UseGuards(AccessTokenGuard)
 export class IssuesController {

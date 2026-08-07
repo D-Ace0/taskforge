@@ -19,7 +19,10 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import type { AuthenticatedRequest } from '../auth/types/authenticated-request';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { ListCommentQueryDto } from './dto/list-comment-query.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Comments')
+@ApiBearerAuth('access-token')
 @Controller(
   'workspaces/:workspaceId/projects/:projectId/issues/:issueId/comments',
 )

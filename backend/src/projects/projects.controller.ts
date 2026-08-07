@@ -19,7 +19,10 @@ import type { AuthenticatedRequest } from '../auth/types/authenticated-request';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ListProjectQueryDto } from './dto/list-projects-query.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Projects')
+@ApiBearerAuth('access-token')
 @Controller('workspaces/:workspaceId/projects')
 @UseGuards(AccessTokenGuard)
 export class ProjectsController {

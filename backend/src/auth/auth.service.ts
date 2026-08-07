@@ -83,7 +83,7 @@ export class AuthService {
     );
 
     if (!rotatedSession) {
-      throw new UnauthorizedException('Invalid refresh token4');
+      throw new UnauthorizedException('Invalid refresh token');
     }
 
     return {
