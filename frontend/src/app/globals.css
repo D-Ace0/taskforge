@@ -24,3 +24,93 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+@keyframes logo-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+
+  50% {
+    transform: translateY(-12px) rotate(1deg);
+  }
+}
+
+@keyframes logo-node-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(0.9);
+    transform-origin: center;
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+    transform-origin: center;
+  }
+}
+
+@keyframes logo-check {
+  0% {
+    stroke-dashoffset: 120;
+  }
+
+  35%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes logo-spark {
+  0%,
+  70%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.8);
+    transform-origin: center;
+  }
+
+  85% {
+    opacity: 1;
+    transform: scale(1.3);
+    transform-origin: center;
+  }
+}
+
+.animate-logo-float {
+  animation: logo-float 4s ease-in-out infinite;
+}
+
+.animate-logo-node-one {
+  animation: logo-node-pulse 2.4s ease-in-out infinite;
+}
+
+.animate-logo-node-two {
+  animation: logo-node-pulse 2.4s ease-in-out 0.3s infinite;
+}
+
+.animate-logo-node-three {
+  animation: logo-node-pulse 2.4s ease-in-out 0.6s infinite;
+}
+
+.animate-logo-check {
+  stroke-dasharray: 120;
+  animation: logo-check 3s ease-in-out infinite;
+}
+
+.animate-logo-spark {
+  animation: logo-spark 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-logo-float,
+  .animate-logo-node-one,
+  .animate-logo-node-two,
+  .animate-logo-node-three,
+  .animate-logo-check,
+  .animate-logo-spark {
+    animation: none;
+  }
+}

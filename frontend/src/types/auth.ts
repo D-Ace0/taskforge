@@ -1,3 +1,9 @@
+export type ApiResponseError = {
+    message: string | string[];
+    error: string;
+    statusCode: number
+}
+
 export type User = {
     id: string;
     name: string;
@@ -6,21 +12,10 @@ export type User = {
     updatedAt: string
 }
 
+export type RegisterResponse = User;
+
+
 export type LoginResponse = {
-    accessToken: string;
-    user: User;
-}
-
-export type RegisterResponse = {
-    user: User;
-}
-
-export type ApiResponseError = {
-    message: string | string[];
-    error: string;
-    statusCode: number
-}
-
-export type RefreshResponse = {
-    accessToken: string;
-}
+  accessToken: string;
+  user: User;
+};
