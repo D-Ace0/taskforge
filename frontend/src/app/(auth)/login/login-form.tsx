@@ -3,7 +3,7 @@
 import Button from "@/components/ui/button";
 import type { ApiResponseError, LoginResponse } from "@/types/auth";
 import { useRouter } from "next/navigation";
-import { type SubmitEvent, useState } from "react";
+import { type SubmitEvent, useRef, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
 
 export default function LoginForm() {
@@ -14,6 +14,7 @@ export default function LoginForm() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string|null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
 
     const isPasswordValid = password.length >= 15 && password.length <= 128;
     const hasEmail = email.trim().length > 0;

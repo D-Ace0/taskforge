@@ -19,3 +19,7 @@ export type LoginResponse = {
   accessToken: string;
   user: User;
 };
+
+export type RefreshResponse = {
+    accessToken: string;
+}
