@@ -30,7 +30,8 @@ export default function RegisterForm() {
             email: email.trim().toLowerCase(),
             password,
             };
-            const response = await fetch('http://localhost:5000/auth/register', 
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${apiUrl}/auth/register`, 
                 {
                     'method': 'POST',
                     credentials: "include",
