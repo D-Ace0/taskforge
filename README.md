@@ -4,6 +4,14 @@ TaskForge is a production-minded collaborative project management application fo
 
 It is built as a full-stack TypeScript monorepo with a NestJS REST API, a Next.js frontend, PostgreSQL, Prisma ORM, rotating refresh-token sessions, and workspace-level role-based authorization.
 
+## Live application
+
+- Application: [taskforge-jade.vercel.app](https://taskforge-jade.vercel.app/)
+- API health: [taskforge-api-chi.vercel.app/health](https://taskforge-api-chi.vercel.app/health)
+- API documentation: [taskforge-api-chi.vercel.app/docs](https://taskforge-api-chi.vercel.app/docs)
+
+The Next.js frontend and NestJS API are deployed as separate Vercel projects. The production API connects to a pooled Neon PostgreSQL database, while local development uses PostgreSQL in Docker.
+
 ## Features
 
 - Register, sign in, sign out, restore sessions, and update profile information
@@ -24,10 +32,10 @@ It is built as a full-stack TypeScript monorepo with a NestJS REST API, a Next.j
 | --- | --- |
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
 | Backend | NestJS 11, TypeScript, class-validator, Swagger |
-| Database | PostgreSQL 17 |
+| Database | PostgreSQL 17 locally, Neon PostgreSQL in production |
 | Data access | Prisma 7 with the PostgreSQL driver adapter |
 | Authentication | Argon2id, JWT access tokens, rotating opaque refresh tokens |
-| Infrastructure | Docker Compose |
+| Infrastructure | Docker, Docker Compose, Vercel, Neon |
 
 ## Architecture
 
@@ -51,6 +59,24 @@ NestJS API (localhost:5000)
 The frontend keeps the short-lived access token in memory. The longer-lived refresh token is stored in a `HttpOnly` cookie, so browser JavaScript cannot read it. Refresh tokens are hashed before being stored in the `Session` table and rotated whenever a session is refreshed.
 
 Authorization is enforced by the backend. Hiding a frontend button improves the user experience, but it is never treated as a security boundary.
+
+### Production deployment
+
+```text
+Browser
+   |
+   v
+Next.js frontend (Vercel)
+   |
+   | HTTPS REST requests
+   | Bearer access token + HttpOnly refresh-token cookie
+   v
+NestJS API (Vercel)
+   |
+   | Prisma + pooled PostgreSQL connection
+   v
+Neon PostgreSQL
+```
 
 ## Workspace roles
 
@@ -90,7 +116,7 @@ taskforge/
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/D-Ace0/taskforge.git
 cd taskforge
 ```
 
@@ -213,7 +239,7 @@ See Swagger for the complete request and response contracts.
 
 ## First-version scope
 
-TaskForge currently focuses on authentication, profiles, workspaces, roles, projects, issues, and comments. Password reset, email verification, invitations, attachments, real-time notifications, WebSockets, audit logs, and production cloud deployment are intentionally reserved for later versions.
+TaskForge currently focuses on authentication, profiles, workspaces, roles, projects, issues, comments, and production cloud deployment. Password reset, email verification, invitations, attachments, real-time notifications, WebSockets, and audit logs are intentionally reserved for later versions.
 
 ## Verification
 
