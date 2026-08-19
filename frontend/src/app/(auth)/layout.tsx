@@ -30,7 +30,7 @@ export default function AuthLayout({children}: AuthLayoutProps) {
                         Collaborative work, clearly organized
                     </p>
                     <h1 className="font-bold text-4xl tracking-tight mt-4">
-                        Bring your team's work into one focused workspace.
+                        Bring your team&apos;s work into one focused workspace.
                     </h1>
                     <p className="mt-6 text-slate-300 leading-7">
                         Plan projects, assign issues, discuss progress, and keep everyone aligned.

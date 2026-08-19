@@ -82,10 +82,7 @@ export class ProjectsService {
             },
           },
         },
-        orderBy: {
-          createdAt: 'desc',
-          id: 'desc',
-        },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         skip: skip,
         take: limit,
       }),

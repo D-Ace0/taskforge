@@ -115,10 +115,7 @@ export class IssuesService {
             },
           },
         },
-        orderBy: {
-          createdAt: 'desc',
-          id: 'desc',
-        },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         skip: skip,
         take: limit,
       }),

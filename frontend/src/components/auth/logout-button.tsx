@@ -3,7 +3,7 @@
 import { useAuth } from "@/contexts/auth-context";
 import Button from "../ui/button";
 import { useRouter } from "next/navigation";
-import { useState, type MouseEvent } from "react";
+import { useState } from "react";
 
 export default function LogoutButton() {
     const {signOut} = useAuth();

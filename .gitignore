@@ -5,6 +5,7 @@ node_modules/
 dist/
 .next/
 coverage/
+*.tsbuildinfo
 
 # Environment files
 .env
@@ -26,3 +27,6 @@ Thumbs.db
 # Local infrastructure data
 postgres-data/
 redis-data/
+
+# Local generated working files
+tmp/

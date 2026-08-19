@@ -3,11 +3,16 @@
 import type { LoginResponse, RefreshResponse, User } from "@/types/auth";
 import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 type AuthContextValues = {
     user: User | null;
     accessToken: string | null;
     signIn: (response: LoginResponse) => void;
     signOut: () => Promise<void>;
+    updateUser: (user: User) => void;
+    authenticationError: string | null;
+    retryAuthentication: () => void;
     isInitializing: boolean;
 }
 
@@ -17,8 +22,9 @@ export default function AuthProvider({children}: {children: ReactNode}) {
     const [user, setUser] = useState<User|null>(null);
     const [accessToken, setAccessToken] = useState<string|null>(null);
     const [isInitializing, setIsInitializing] = useState(true);
+    const [authenticationError, setAuthenticationError] = useState<string | null>(null);
+    const [restoreAttempt, setRestoreAttempt] = useState(0);
     const hasInitialized = useRef(false);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     useEffect(() => {
         if(hasInitialized.current) {
@@ -26,6 +32,7 @@ export default function AuthProvider({children}: {children: ReactNode}) {
         }
         hasInitialized.current = true;
         async function restoreAuthentication() {
+            setAuthenticationError(null);
             try {
                 const response = await fetch(`${apiUrl}/auth/refresh`,{
                     method: 'POST',
@@ -52,20 +59,30 @@ export default function AuthProvider({children}: {children: ReactNode}) {
                 const userData: User = await userResponse.json();
                 setUser(userData);
                 setAccessToken(refreshResponse.accessToken);
-            } catch (error){
+            } catch {
                 setUser(null);
                 setAccessToken(null);
-                console.error("Failed to restore authentication", error);
+                setAuthenticationError("TaskForge cannot reach the API. Make sure the backend is running, then try again.");
             } finally {
                 setIsInitializing(false)
             }
         }
         void restoreAuthentication();
-    }, [])
+    }, [restoreAttempt])
 
     function signIn(response: LoginResponse) {
         setUser(response.user);
         setAccessToken(response.accessToken);
+    }
+
+    function updateUser(user: User) {
+        setUser(user);
+    }
+
+    function retryAuthentication() {
+        hasInitialized.current = false;
+        setIsInitializing(true);
+        setRestoreAttempt((attempt) => attempt + 1);
     }
 
     async function signOut() {
@@ -82,7 +99,7 @@ export default function AuthProvider({children}: {children: ReactNode}) {
     }
 
     return (
-        <AuthContext.Provider value={{user, accessToken, signIn, signOut, isInitializing}}>
+        <AuthContext.Provider value={{user, accessToken, signIn, signOut, updateUser, authenticationError, retryAuthentication, isInitializing}}>
             {children}
         </AuthContext.Provider>
     )

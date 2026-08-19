@@ -103,10 +103,7 @@ export class CommentsService {
             },
           },
         },
-        orderBy: {
-          createdAt: 'asc',
-          id: 'asc',
-        },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
         skip: skip,
         take: limit,
       }),

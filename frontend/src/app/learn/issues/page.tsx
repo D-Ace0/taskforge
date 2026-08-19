@@ -9,7 +9,7 @@ type Issue = {
   status: IssueStatus;
 };
 
-export var issues: Issue[] = [
+export const issues: Issue[] = [
   { id: 1, title: "Design login page", status: "TODO" },
   { id: 2, title: "Connect authentication API", status: "IN_PROGRESS" },
   { id: 3, title: "Create database schema", status: "DONE" },
